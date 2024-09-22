@@ -1,6 +1,4 @@
-
-import mysql.connector 
-
+import mysql.connector
 
 conn = mysql.connector.connect(
     host="localhost",
@@ -17,32 +15,43 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS wordlist (
                );
                """) 
 
-conn.commit() # saves the progress in Database
+conn.commit()  # saves the progress in the database
 
 while True:
     print("\nMenu:")
     print("1. Add Column")
-    print("2. View All Data")
+    print("2. Insert A Word")
+    print("3. View All Data")
 
     cmd = int(input("Enter a command number: "))
 
     if cmd == 1:
-        cname = input("Enter name of column: ")
-        c = conn.cursor()
-        query = "ALTER TABLE wordlist ADD {} TEXT".format(cname)
-        c.execute(query)
-        print(f"Added a new column {cname} to table 'word list'.")
+        cname = input("Enter the name of the column: ")
+        query = f"ALTER TABLE wordlist ADD `{cname}` TEXT"
+        cursor.execute(query)
+        print(f"Added a new column '{cname}' to table 'wordlist'.")
         conn.commit()
 
-    if cmd == 2:
-        c = conn.cursor()
-        c.execute("""SELECT * FROM wordlist""")
-        r = c.fetchall()
-        for i in r:
-            print(i)
+    elif cmd == 2:
+        word = input("Enter the word you want to insert: ")
+        cname = input("Please enter name of the column: ")
 
+        if word and cname:
+            try:
+                query = f"INSERT INTO wordlist (`{cname}`) VALUES (%s)"
+                cursor.execute(query, (word,))
+                conn.commit()
+                print(f"Inserted '{word}' into column '{cname}'.")
+                
+            except mysql.connector.Error as err:
+                print(f"Error: {err}")
+                print("Please enter a valid column name!")
 
+    elif cmd == 3:
+        cursor.execute("SELECT * FROM wordlist")
+        rows = cursor.fetchall()
+        for row in rows:
+            print(row)
 
-
-
-
+    else:
+        print("Invalid command.")
