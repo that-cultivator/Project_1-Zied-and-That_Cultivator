@@ -22,6 +22,7 @@ while True:
     print("1. Add Column")
     print("2. Insert A Word")
     print("3. View All Data")
+    print("4. Delete a column")
 
     cmd = int(input("Enter a command number: "))
 
@@ -53,5 +54,20 @@ while True:
         for row in rows:
             print(row)
 
+    elif cmd == 4: 
+        cname = input("Enter name of the column you want to delete: ")
+        query = f"ALTER TABLE wordlist DROP COLUMN {cname}"
+        try:
+            if cname != "id":
+                cursor.execute(query)
+                print(f"Successfully deleted column: {cname}")
+            else:
+                print("You cannot delete the 'id' column!")
+        except:
+            print("Please enter a valid column name!")   
+
+
     else:
         print("Invalid command.")
+
+
