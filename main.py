@@ -86,8 +86,9 @@ elif args.url:
         try:
             response = r.head(replace, allow_redirects=True, timeout=5)
             if response.status_code == 200:
-                print("website exists")  # website exists
-            print("website doesn't exist")  # website doesn't exist
+                print("website exists")  # Website exists
+            else:
+                print("website doesn't exist")  # Website doesn't exist
         except r.RequestException:
                 print("An error occurred!")
 
