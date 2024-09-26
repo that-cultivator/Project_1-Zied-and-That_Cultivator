@@ -1,6 +1,8 @@
 import argparse
 import mysql.connector
 import requests as r
+import time 
+
 #connects the code to the "mysql" db 
 conn = mysql.connector.connect(
     host="localhost",
@@ -89,6 +91,7 @@ elif args.url:
                 print("website exists")  # Website exists
             else:
                 print("website doesn't exist")  # Website doesn't exist
+            time.sleep(2)
         except r.RequestException:
                 print("An error occurred!")
 
