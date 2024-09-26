@@ -1,5 +1,6 @@
 import argparse
 import mysql.connector
+import requests as r
 #connects the code to the "mysql" db 
 conn = mysql.connector.connect(
     host="localhost",
@@ -76,12 +77,20 @@ elif args.delete:
 #taking the url and replacing it with the words from the db
 
 elif args.url:
-    cursor.execute("select * from wordlist")
+    cursor.execute("select word from wordlist")
     words = cursor.fetchall()
     for word in words:
         word = word[0]
         replace = args.url.replace("*", word)
         print(replace)
+        try:
+            response = r.head(replace, allow_redirects=True, timeout=5)
+            if response.status_code == 200:
+                print("website exists")  # website exists
+            print("website doesn't exist")  # website doesn't exist
+        except r.RequestException:
+                print("An error occurred!")
+
 
 #none of the above
 else:
