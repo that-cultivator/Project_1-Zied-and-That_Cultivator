@@ -13,24 +13,24 @@ conn = mysql.connector.connect(
 
 cursor = conn.cursor()
 #create the table if it doesn't exist
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS wordlist (
-    id INTEGER AUTO_INCREMENT PRIMARY KEY, 
-    word TEXT,
-    web_exists BOOLEAN
-);
-""") 
+cursor.execute("""CREATE TABLE IF NOT EXISTS wordlist (
+               id INTEGER AUTO_INCREMENT PRIMARY KEY, 
+               word TEXT
+               );
+               """) 
 
 conn.commit()  # saves the progress in the database
 
 #create commands with the help of the argparse module
-parser = argparse.ArgumentParser()
-parser.add_argument("-c","--create", dest="create", help="creats a new column in the database")
-parser.add_argument("-a","--addwords", dest="add", help="adds a new word or list of words to the database")
-parser.add_argument("-col", "--column", dest="column", help="Specifies the column to add the word to")
+parser = argparse.ArgumentParser(description="PYTHON FUZZING TOOL")
+parser.add_argument("-c","--create", dest="create", help="creats a new column in the database", metavar="")
+parser.add_argument("-a","--addwords", dest="add", help="adds a new word or list of words to the database", metavar="")
+parser.add_argument("-col", "--column", dest="column", help="Specifies the column to add the word to", metavar="")
 parser.add_argument("-s","--show", dest="show", help="shows the contents of the database", action="store_true")
-parser.add_argument("-d","--delete", help="deletes an item from the database")
-parser.add_argument("-u", "--url",dest="url", help="specify the url you want to fuzz")
+parser.add_argument("-d","--delete", help="deletes an item from the database", metavar="")
+parser.add_argument("-u", "--url", dest="url", help="specify the url you want to fuzz", metavar="")
+parser.add_argument("-f", "--file", dest="file", help="specify a file with the urls you want to fuzz", metavar="")
+parser.add_argument("-t","--time", dest="duration", help="specify timeout duration", type=int, metavar="")
 args=parser.parse_args()
 
  #check if the creat command has been called
@@ -70,37 +70,52 @@ elif args.delete:
     cname = args.delete
     query = f"ALTER TABLE wordlist DROP COLUMN {cname}"
     try:
-        if cname != "id" and cname != "word" and cname != "web_exists":
+        if cname != "id":
             cursor.execute(query)
             print(f"Successfully deleted column: {cname}")
         else:
-            print("You cannot delete the 'id', 'word', or 'exists' columns!")
+            print("You cannot delete the 'id' column!")
     except:
         print("Please enter a valid column name!")   
 
 #taking the url and replacing it with the words from the db
 
 elif args.url:
-    cursor.execute("SELECT id, word FROM wordlist")
-    words = cursor.fetchall()
-    for word in words:
-        word_id = word[0]
-        word_value = word[1]
-        replace = args.url.replace("*", word_value)
-        print(replace)
-        try:
-            response = r.head(replace, allow_redirects=True, timeout=5)
-            if response.status_code == 200:
-                print(f"Website exists for: {replace}")
-                cursor.execute("UPDATE wordlist SET web_exists = %s WHERE id = %s", (True, word_id))
-            else:
-                print(f"Website doesn't exist for: {replace}")
-                cursor.execute("UPDATE wordlist SET web_exists = %s WHERE id = %s", (False, word_id))
-            conn.commit()
-            time.sleep(2)
-        except r.RequestException as e:
-            print(f"An error occurred with {replace}: {e}")
-            
+    if args.file:
+        url_file = open(args.file, "r")
+        lines= url_file.read()
+        newlines= lines.splitlines()
+        for filewords in newlines:
+            replace = args.url.replace("*", filewords)
+            print(replace)
+            try:
+                duration= args.duration
+                response = r.head(replace, allow_redirects=True, timeout=duration)
+                if response.status_code == 200:
+                    print("website exists")  # Website exists
+                else:
+                    print("website doesn't exist")  # Website doesn't exist
+                time.sleep(1)
+            except r.RequestException:
+                    print("An error occurred!")
+
+    else:            
+        cursor.execute("select word from wordlist WHERE word IS NOT NULL")
+        words = cursor.fetchall()
+        for word in words:
+            word =word[0]
+            replace = args.url.replace("*", word)
+            print(replace)
+            try:
+                duration= args.duration
+                response = r.head(replace, allow_redirects=True, timeout=duration)
+                if response.status_code == 200:
+                    print("website exists")  # Website exists
+                else:
+                    print("website doesn't exist")  # Website doesn't exist
+                time.sleep(1)
+            except r.RequestException:
+                    print("An error occurred!")
 
 #none of the above
 else:
