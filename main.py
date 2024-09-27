@@ -13,13 +13,13 @@ conn = mysql.connector.connect(
 
 cursor = conn.cursor()
 #create the table if it doesn't exist
-cursor.execute("""CREATE TABLE IF NOT EXISTS wordlist (
-               id INTEGER AUTO_INCREMENT PRIMARY KEY, 
-               word TEXT,
-               exists BOOLEAN
-               );
-               """) 
-
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS wordlist (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY, 
+    word TEXT,
+    `exists` BOOLEAN
+);
+""")
 conn.commit()  # saves the progress in the database
 
 #create commands with the help of the argparse module
