@@ -15,7 +15,8 @@ cursor = conn.cursor()
 #create the table if it doesn't exist
 cursor.execute("""CREATE TABLE IF NOT EXISTS wordlist (
                id INTEGER AUTO_INCREMENT PRIMARY KEY, 
-               word TEXT
+               word TEXT,
+               exists BOOLEAN
                );
                """) 
 
@@ -68,33 +69,37 @@ elif args.delete:
     cname = args.delete
     query = f"ALTER TABLE wordlist DROP COLUMN {cname}"
     try:
-        if cname != "id":
+        if cname != "id" and cname != "word" and cname != "exists":
             cursor.execute(query)
             print(f"Successfully deleted column: {cname}")
         else:
-            print("You cannot delete the 'id' column!")
+            print("You cannot delete the 'id', 'word', or 'exists' columns!")
     except:
         print("Please enter a valid column name!")   
 
 #taking the url and replacing it with the words from the db
 
 elif args.url:
-    cursor.execute("select word from wordlist")
+    cursor.execute("SELECT id, word FROM wordlist")
     words = cursor.fetchall()
     for word in words:
-        word = word[0]
-        replace = args.url.replace("*", word)
+        word_id = word[0]
+        word_value = word[1]
+        replace = args.url.replace("*", word_value)
         print(replace)
         try:
             response = r.head(replace, allow_redirects=True, timeout=5)
             if response.status_code == 200:
-                print("website exists")  # Website exists
+                print(f"Website exists for: {replace}")
+                cursor.execute("UPDATE wordlist SET `exists` = %s WHERE id = %s", (True, word_id))
             else:
-                print("website doesn't exist")  # Website doesn't exist
+                print(f"Website doesn't exist for: {replace}")
+                cursor.execute("UPDATE wordlist SET `exists` = %s WHERE id = %s", (False, word_id))
+            conn.commit()
             time.sleep(2)
-        except r.RequestException:
-                print("An error occurred!")
-
+        except r.RequestException as e:
+            print(f"An error occurred with {replace}: {e}")
+            
 
 #none of the above
 else:
