@@ -17,9 +17,10 @@ cursor.execute("""
 CREATE TABLE IF NOT EXISTS wordlist (
     id INTEGER AUTO_INCREMENT PRIMARY KEY, 
     word TEXT,
-    `exists` BOOLEAN
+    web_exists BOOLEAN
 );
-""")
+""") 
+
 conn.commit()  # saves the progress in the database
 
 #create commands with the help of the argparse module
@@ -69,7 +70,7 @@ elif args.delete:
     cname = args.delete
     query = f"ALTER TABLE wordlist DROP COLUMN {cname}"
     try:
-        if cname != "id" and cname != "word" and cname != "exists":
+        if cname != "id" and cname != "word" and cname != "web_exists":
             cursor.execute(query)
             print(f"Successfully deleted column: {cname}")
         else:
@@ -91,10 +92,10 @@ elif args.url:
             response = r.head(replace, allow_redirects=True, timeout=5)
             if response.status_code == 200:
                 print(f"Website exists for: {replace}")
-                cursor.execute("UPDATE wordlist SET `exists` = %s WHERE id = %s", (True, word_id))
+                cursor.execute("UPDATE wordlist SET web_exists = %s WHERE id = %s", (True, word_id))
             else:
                 print(f"Website doesn't exist for: {replace}")
-                cursor.execute("UPDATE wordlist SET `exists` = %s WHERE id = %s", (False, word_id))
+                cursor.execute("UPDATE wordlist SET web_exists = %s WHERE id = %s", (False, word_id))
             conn.commit()
             time.sleep(2)
         except r.RequestException as e:
