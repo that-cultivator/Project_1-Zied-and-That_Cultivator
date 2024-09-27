@@ -1,4 +1,4 @@
-USAGE:
+INTRODUCTION:
 
 
 This is a beginner-friendly directory brute forcing command-line tool, it can save words in an sql database and use those words to feed the tool as completion for the url (the same could be done by feeding the tool a txt file containing a wordlist as the sql part was for mere learning practices).
